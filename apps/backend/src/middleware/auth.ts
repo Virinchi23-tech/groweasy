@@ -60,7 +60,7 @@ export const authenticateToken = async (
     next();
   } catch (err: any) {
     authLogger.error('Token verification error', { error: err.message });
-    return res.status(403).json({ error: 'Invalid or expired access token' });
+    return res.status(401).json({ error: 'Invalid or expired access token' });
   }
 };
 

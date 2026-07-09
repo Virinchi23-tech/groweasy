@@ -41,7 +41,7 @@ const authenticateToken = async (req, res, next) => {
     }
     catch (err) {
         logger_1.authLogger.error('Token verification error', { error: err.message });
-        return res.status(403).json({ error: 'Invalid or expired access token' });
+        return res.status(401).json({ error: 'Invalid or expired access token' });
     }
 };
 exports.authenticateToken = authenticateToken;
