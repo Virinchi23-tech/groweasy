@@ -1,0 +1,40 @@
+# Production Dockerfile for Backend
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+COPY packages/shared/package*.json ./packages/shared/
+COPY packages/shared/tsconfig.json ./packages/shared/
+COPY database/prisma/package*.json ./database/prisma/
+COPY database/prisma/tsconfig.json ./database/prisma/
+COPY apps/backend/package*.json ./apps/backend/
+COPY apps/backend/tsconfig.json ./apps/backend/
+
+# Copy lockfiles and configurations, run clean install
+COPY .npmrc ./
+RUN npm ci
+
+COPY packages/shared ./packages/shared
+COPY database/prisma ./database/prisma
+COPY apps/backend ./apps/backend
+
+RUN npm run build -w packages/shared
+RUN npm run generate -w database/prisma
+RUN npm run build -w database/prisma
+RUN npm run build -w apps/backend
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder /app/database/prisma/dist ./database/prisma/dist
+COPY --from=builder /app/database/prisma/schema.prisma ./database/prisma/schema.prisma
+COPY --from=builder /app/database/prisma/schema.sql ./database/prisma/schema.sql
+COPY --from=builder /app/database/prisma/package.json ./database/prisma/package.json
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/apps/backend/package.json ./apps/backend/package.json
+
+EXPOSE 5000
+ENV NODE_ENV=production
+CMD ["npm", "run", "start", "-w", "apps/backend"]

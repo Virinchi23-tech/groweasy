@@ -1,0 +1,215 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+model Role {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  users     User[]
+
+  @@index([name])
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  roleId       String
+  role         Role           @relation(fields: [roleId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  deletedAt    DateTime?
+  imports      Import[]
+  auditLogs    AuditLog[]
+  tokens       RefreshToken[]
+
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([token])
+}
+
+model Import {
+  id             String            @id @default(uuid())
+  fileName       String
+  userId         String
+  user           User              @relation(fields: [userId], references: [id])
+  totalRows      Int               @default(0)
+  processedRows  Int               @default(0)
+  successfulRows Int               @default(0)
+  failedRows     Int               @default(0)
+  skippedRows    Int               @default(0)
+  duplicateRows  Int               @default(0)
+  status         String            @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  errorMessage   String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  logs           ImportLog[]
+  csvFiles       CSVFile[]
+  queueItems     ProcessingQueue[]
+  failedImports  FailedImport[]
+  duplicateLeads DuplicateLead[]
+  leads          Lead[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model ImportLog {
+  id        String   @id @default(uuid())
+  importId  String
+  import    Import   @relation(fields: [importId], references: [id], onDelete: Cascade)
+  level     String   // INFO, WARNING, ERROR
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([importId])
+}
+
+model CSVFile {
+  id        String   @id @default(uuid())
+  importId  String
+  import    Import   @relation(fields: [importId], references: [id], onDelete: Cascade)
+  filePath  String
+  fileSize  Int
+  headers   String   // JSON string of header names
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([importId])
+}
+
+model ProcessingQueue {
+  id           String   @id @default(uuid())
+  importId     String
+  import       Import   @relation(fields: [importId], references: [id], onDelete: Cascade)
+  batchIndex   Int
+  status       String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  payload      String   // JSON string of row records in this batch
+  errorMessage String?
+  attempts     Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([importId])
+  @@index([status])
+}
+
+model Lead {
+  id                       String          @id @default(uuid())
+  importId                 String?
+  import                   Import?         @relation(fields: [importId], references: [id])
+  name                     String
+  email                    String
+  countryCode              String?
+  mobileWithoutCountryCode String?
+  company                  String?
+  city                     String?
+  state                    String?
+  country                  String?
+  leadOwner                String?
+  crmStatus                String          // GOOD_LEAD_FOLLOW_UP, DID_NOT_CONNECT, BAD_LEAD, SALE_DONE
+  crmNote                  String?
+  dataSource               String?
+  possessionTime           String?
+  description              String?
+  rawData                  String?         // JSON string of original CSV row data
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  deletedAt                DateTime?
+  history                  LeadHistory[]
+  duplicates               DuplicateLead[] @relation("LeadDuplicate")
+
+  @@index([email])
+  @@index([mobileWithoutCountryCode])
+  @@index([importId])
+  @@index([crmStatus])
+}
+
+model LeadHistory {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  fieldName String
+  oldValue  String?
+  newValue  String?
+  changedBy String?  // user ID or 'SYSTEM' / 'AI'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([leadId])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  targetTable String
+  targetId    String?
+  details     String?  // JSON string
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model FailedImport {
+  id           String   @id @default(uuid())
+  importId     String
+  import       Import   @relation(fields: [importId], references: [id], onDelete: Cascade)
+  rowIndex     Int
+  rawRow       String   // JSON string of row
+  errorMessage String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([importId])
+}
+
+model DuplicateLead {
+  id        String   @id @default(uuid())
+  importId  String
+  import    Import   @relation(fields: [importId], references: [id], onDelete: Cascade)
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], name: "LeadDuplicate", onDelete: Cascade)
+  rowIndex  Int
+  rawRow    String   // JSON string of row
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([importId])
+  @@index([leadId])
+}
+
+model Setting {
+  id        String    @id @default(uuid())
+  key       String    @unique
+  value     String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([key])
+}

@@ -1,0 +1,36 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+/dist/
+/.next/
+/out/
+/build/
+
+# Local SQLite databases & journals
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+dev.db
+dev.db-journal
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Winston & System Logs
+logs/
+*.log
+npm-debug.log*
+
+# File Upload directories
+uploads/
+apps/backend/uploads/
+
+# OS-specific temp files
+.DS_Store
+Thumbs.db

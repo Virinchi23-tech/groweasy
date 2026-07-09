@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - DATABASE_URL=file:./dev.db
+      - JWT_SECRET=super_secret_jwt_key_for_groweasy_crm_123456
+      - JWT_REFRESH_SECRET=super_secret_jwt_refresh_key_for_groweasy_crm_789012
+      - JWT_ACCESS_EXPIRY=15m
+      - JWT_REFRESH_EXPIRY=7d
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4o-mini
+      - UPLOAD_DIR=uploads
+      - NODE_ENV=production
+    volumes:
+      - backend-uploads:/app/apps/backend/uploads
+      - db-data:/app/database/prisma
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:5000/api
+      - NODE_ENV=production
+    depends_on:
+      - backend
+
+volumes:
+  backend-uploads:
+  db-data:
