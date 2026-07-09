@@ -29,3 +29,18 @@ services:
         value: gpt-4o-mini
       - key: UPLOAD_DIR
         value: uploads
+
+  # Frontend Web Service (Docker)
+  - type: web
+    name: groweasy-frontend
+    env: docker
+    dockerfilepath: docker/Dockerfile.frontend
+    dockercontext: .
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          name: groweasy-backend
+          value: url
