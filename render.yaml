@@ -1,0 +1,31 @@
+services:
+  # Backend Web Service (Docker)
+  - type: web
+    name: groweasy-backend
+    env: docker
+    dockerfilepath: docker/Dockerfile.backend
+    dockercontext: .
+    plan: free
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: libsql://groweasy-virinchi23-tech.aws-ap-south-1.turso.io
+      - key: DATABASE_AUTH_TOKEN
+        value: eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODM1OTEwNDUsImlkIjoiMDE5ZjQ2NGYtMWYwMS03MGJhLWI3NWEtYTMwZjlmZGFmYzI0Iiwia2lkIjoibDFXZ2puRzFzVzlrcGlfcU5kS3VUZkJ3TEZFRDJib0xQZlNYTFlvVGpKayIsInJpZCI6ImUzY2ZiNjA5LWVlODQtNGM4Yy04NWFkLTI1MWI2YmNjNTVlZiJ9.PO7RJo6BzUX7vfjGrwzWPPR7b2kCyKaOW2UW3V-Nd226wQbbZRgigVQm24hKocL-cVp7Uqr7zPzjEKZTFzVbAQ
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRY
+        value: 15m
+      - key: JWT_REFRESH_EXPIRY
+        value: 7d
+      - key: OPENAI_API_KEY
+        sync: false # Prompt user to input in Render GUI
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: UPLOAD_DIR
+        value: uploads
