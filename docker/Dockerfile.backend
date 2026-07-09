@@ -37,4 +37,4 @@ COPY --from=builder /app/apps/backend/package.json ./apps/backend/package.json
 
 EXPOSE 5000
 ENV NODE_ENV=production
-CMD ["npm", "run", "start", "-w", "apps/backend"]
+CMD ["sh", "-c", "npm run migrate -w database/prisma && npm run seed -w database/prisma && npm run start -w apps/backend"]

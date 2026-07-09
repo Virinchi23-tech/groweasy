@@ -69,7 +69,7 @@ class QueueWorker {
             await this.processQueueItem(queueItem);
         }
         catch (err) {
-            logger_1.errorLogger.error('Queue Worker execution error', { error: err.message });
+            logger_1.errorLogger.error('Queue Worker execution error: ' + err.message, err);
         }
         finally {
             this.isRunning = false;

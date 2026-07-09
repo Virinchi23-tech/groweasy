@@ -75,7 +75,7 @@ export class QueueWorker {
 
       await this.processQueueItem(queueItem);
     } catch (err: any) {
-      errorLogger.error('Queue Worker execution error', { error: err.message });
+      errorLogger.error('Queue Worker execution error: ' + err.message, err);
     } finally {
       this.isRunning = false;
     }

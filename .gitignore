@@ -2,10 +2,10 @@
 node_modules/
 
 # Build outputs
-/dist/
-/.next/
-/out/
-/build/
+dist/
+.next/
+out/
+build/
 
 # Local SQLite databases & journals
 *.db

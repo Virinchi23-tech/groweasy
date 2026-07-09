@@ -2,6 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@groweasy/shared'],
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
 };
 
 module.exports = nextConfig;

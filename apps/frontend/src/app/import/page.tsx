@@ -63,7 +63,7 @@ export default function ImportPage() {
       });
 
       setProgress(100);
-      router.push(`/import/preview/${response.importId}`);
+      router.push(`/import/preview?id=${response.importId}`);
     } catch (err: any) {
       setError(err.message || 'File upload and parsing failed. Please try again.');
       setUploading(false);

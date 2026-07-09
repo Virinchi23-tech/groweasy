@@ -30,16 +30,12 @@ services:
       - key: UPLOAD_DIR
         value: uploads
 
-  # Frontend Web Service (Docker)
-  - type: web
+  # Frontend Static Site
+  - type: static
     name: groweasy-frontend
-    env: docker
-    dockerfilepath: docker/Dockerfile.frontend
-    dockercontext: .
-    plan: free
+    buildCommand: npm install --legacy-peer-deps && npm run build -w packages/shared && npm run build -w apps/frontend
+    publishPath: apps/frontend/out
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: NEXT_PUBLIC_API_URL
         fromService:
           name: groweasy-backend
