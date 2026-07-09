@@ -13,7 +13,7 @@
     "dev:frontend": "npm run dev -w apps/frontend",
     "build:backend": "npm run build -w apps/backend",
     "build:frontend": "npm run build -w apps/frontend",
-    "start:backend": "npm run start -w apps/backend",
+    "start:backend": "npm run migrate -w database/prisma && npm run seed -w database/prisma && npm run start -w apps/backend",
     "start:frontend": "npm run start -w apps/frontend",
     "test": "npm test --workspaces --if-present",
     "prisma:generate": "npm run generate -w database/prisma",
