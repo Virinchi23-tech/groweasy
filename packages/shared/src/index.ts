@@ -23,11 +23,15 @@ export const RawRowSchema = z.record(z.string().nullable().optional());
 
 // Base lead validation rules applied after AI mapping
 export const LeadValidationSchema = z.object({
-  created_at: z.string().refine((val) => {
-    if (!val) return false;
+  created_at: z.preprocess((val) => {
+    if (val === undefined || val === null || val === '') {
+      return new Date().toISOString();
+    }
+    return val;
+  }, z.string().refine((val) => {
     const d = new Date(val);
     return !isNaN(d.getTime());
-  }, { message: "created_at must be a valid ISO or date string" }),
+  }, { message: "created_at must be a valid ISO or date string" })),
   name: z.string().min(1, "Name is required").default("Unknown"),
   email: z.string().email("Invalid email format").nullable().or(z.literal("")).optional(),
   country_code: z.string().nullable().optional().default(""),

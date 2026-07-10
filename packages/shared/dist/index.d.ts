@@ -5,7 +5,7 @@ export type CRMStatus = typeof CRM_STATUSES[number];
 export type DataSource = typeof DATA_SOURCES[number];
 export declare const RawRowSchema: z.ZodRecord<z.ZodString, z.ZodOptional<z.ZodNullable<z.ZodString>>>;
 export declare const LeadValidationSchema: z.ZodEffects<z.ZodObject<{
-    created_at: z.ZodEffects<z.ZodString, string, string>;
+    created_at: z.ZodEffects<z.ZodEffects<z.ZodString, string, string>, string, unknown>;
     name: z.ZodDefault<z.ZodString>;
     email: z.ZodOptional<z.ZodUnion<[z.ZodNullable<z.ZodString>, z.ZodLiteral<"">]>>;
     country_code: z.ZodDefault<z.ZodOptional<z.ZodNullable<z.ZodString>>>;
@@ -37,8 +37,8 @@ export declare const LeadValidationSchema: z.ZodEffects<z.ZodObject<{
     email?: string | null | undefined;
     data_source?: "leads_on_demand" | "meridian_tower" | "eden_park" | "varah_swamy" | "sarjapur_plots" | null | undefined;
 }, {
-    created_at: string;
     crm_status: "GOOD_LEAD_FOLLOW_UP" | "DID_NOT_CONNECT" | "BAD_LEAD" | "SALE_DONE";
+    created_at?: unknown;
     name?: string | undefined;
     email?: string | null | undefined;
     country_code?: string | null | undefined;
@@ -69,8 +69,8 @@ export declare const LeadValidationSchema: z.ZodEffects<z.ZodObject<{
     email?: string | null | undefined;
     data_source?: "leads_on_demand" | "meridian_tower" | "eden_park" | "varah_swamy" | "sarjapur_plots" | null | undefined;
 }, {
-    created_at: string;
     crm_status: "GOOD_LEAD_FOLLOW_UP" | "DID_NOT_CONNECT" | "BAD_LEAD" | "SALE_DONE";
+    created_at?: unknown;
     name?: string | undefined;
     email?: string | null | undefined;
     country_code?: string | null | undefined;

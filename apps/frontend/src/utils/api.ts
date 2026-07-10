@@ -81,19 +81,8 @@ export const apiFetch = async (endpoint: string, options: RequestOptions = {}): 
 
     // Wait for the refresh token promise to resolve
     return new Promise((resolve) => {
-      subscribeTokenRefresh((newToken) => {
-        headers.set('Authorization', `Bearer ${newToken}`);
-        resolve(
-          fetch(url, {
-            ...options,
-            headers,
-          }).then((res) => {
-            if (!res.ok) {
-              return res.json().then(e => Promise.reject(e));
-            }
-            return res.json();
-          })
-        );
+      subscribeTokenRefresh(() => {
+        resolve(apiFetch(endpoint, options));
       });
     });
   }

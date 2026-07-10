@@ -1,4 +1,5 @@
 import { LeadValidationSchema } from '@groweasy/shared';
+import { mapRecordsWithAI } from '../services/ai';
 
 describe('CSV CRM Lead Validation Schema Tests', () => {
   test('Valid Lead passes validation', () => {
@@ -91,5 +92,22 @@ describe('CSV CRM Lead Validation Schema Tests', () => {
     };
     expect(LeadValidationSchema.safeParse(validSource).success).toBe(true);
   });
+
+  test('Heuristic mapping combines First Name and Last Name and ignores Customer Id', async () => {
+    const rawRecords = [
+      {
+        'Customer Id': '12345ID',
+        'First Name': 'Clarence',
+        'Last Name': 'Haynes',
+        'Email': 'clarence@groweasy.com',
+        'Phone': '9876543210',
+      }
+    ];
+    const headers = ['Customer Id', 'First Name', 'Last Name', 'Email', 'Phone'];
+    
+    const mappingResult = await mapRecordsWithAI(rawRecords, headers);
+    expect(mappingResult.success).toBe(true);
+    expect(mappingResult.records[0].name).toBe('Clarence Haynes');
+  });
 });
-// 
+

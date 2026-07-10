@@ -19,12 +19,15 @@ exports.DATA_SOURCES = [
 exports.RawRowSchema = zod_1.z.record(zod_1.z.string().nullable().optional());
 // Base lead validation rules applied after AI mapping
 exports.LeadValidationSchema = zod_1.z.object({
-    created_at: zod_1.z.string().refine((val) => {
-        if (!val)
-            return false;
+    created_at: zod_1.z.preprocess((val) => {
+        if (val === undefined || val === null || val === '') {
+            return new Date().toISOString();
+        }
+        return val;
+    }, zod_1.z.string().refine((val) => {
         const d = new Date(val);
         return !isNaN(d.getTime());
-    }, { message: "created_at must be a valid ISO or date string" }),
+    }, { message: "created_at must be a valid ISO or date string" })),
     name: zod_1.z.string().min(1, "Name is required").default("Unknown"),
     email: zod_1.z.string().email("Invalid email format").nullable().or(zod_1.z.literal("")).optional(),
     country_code: zod_1.z.string().nullable().optional().default(""),

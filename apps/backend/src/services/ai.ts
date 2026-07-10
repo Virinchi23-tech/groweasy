@@ -63,6 +63,27 @@ const mapHeuristically = (records: any[]): any[] => {
 
     const crm_note = extraDetails.join(' | ');
 
+    // Extract name intelligently
+    let name = '';
+    const firstNameKey = keys.find(k => /first.*name/i.test(k.toLowerCase()));
+    const lastNameKey = keys.find(k => /last.*name/i.test(k.toLowerCase()));
+    if (firstNameKey && record[firstNameKey]) {
+      name = String(record[firstNameKey]).trim();
+      if (lastNameKey && record[lastNameKey]) {
+        name += ' ' + String(record[lastNameKey]).trim();
+      }
+    } else {
+      const nameKey = keys.find(k => {
+        const kl = k.toLowerCase();
+        return /name|client|customer|lead/i.test(kl) && !/id|code|num|type/i.test(kl);
+      });
+      if (nameKey && record[nameKey]) {
+        name = String(record[nameKey]).trim();
+      } else {
+        name = getVal(/name|client|customer|lead/i) || 'Unknown Lead';
+      }
+    }
+
     // Guess status
     let crm_status = 'GOOD_LEAD_FOLLOW_UP';
     const statusVal = getVal(/status/i);
@@ -81,7 +102,7 @@ const mapHeuristically = (records: any[]): any[] => {
 
     return {
       created_at: getVal(/date|create|time/i) || new Date().toISOString(),
-      name: getVal(/name|client|customer|lead/i) || 'Unknown Lead',
+      name,
       email,
       country_code: getVal(/country.*code|zip/i) || '91',
       mobile_without_country_code,

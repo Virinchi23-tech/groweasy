@@ -180,6 +180,7 @@ router.get('/status/:id', authenticateToken, async (req: AuthenticatedRequest, r
     const importJob = await prisma.import.findUnique({
       where: { id: req.params.id },
       include: {
+        csvFiles: true,
         _count: {
           select: { queueItems: true },
         },
@@ -202,8 +203,26 @@ router.get('/status/:id', authenticateToken, async (req: AuthenticatedRequest, r
       where: { importId: req.params.id, status: 'PROCESSING' },
     });
 
+    let headers: string[] = [];
+    let previewRows: any[] = [];
+    const csvFile = importJob.csvFiles[0];
+    if (csvFile && fs.existsSync(csvFile.filePath)) {
+      try {
+        headers = JSON.parse(csvFile.headers);
+      } catch (e) {
+        headers = [];
+      }
+      try {
+        const { rows } = await parseCSVFile(csvFile.filePath);
+        previewRows = rows.slice(0, 10);
+      } catch (e) {
+        previewRows = [];
+      }
+    }
+
     return res.json({
       id: importJob.id,
+      importId: importJob.id,
       fileName: importJob.fileName,
       status: importJob.status,
       totalRows: importJob.totalRows,
@@ -214,6 +233,8 @@ router.get('/status/:id', authenticateToken, async (req: AuthenticatedRequest, r
       duplicateRows: importJob.duplicateRows,
       errorMessage: importJob.errorMessage,
       progress: importJob.totalRows > 0 ? Math.round((importJob.processedRows / importJob.totalRows) * 100) : 0,
+      headers,
+      preview: previewRows,
       batches: {
         total: importJob._count.queueItems,
         completed: completedQueue,

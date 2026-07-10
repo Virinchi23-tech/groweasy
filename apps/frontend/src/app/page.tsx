@@ -208,9 +208,11 @@ export default function DashboardPage() {
                     minute: '2-digit',
                   });
 
-                  let actionUrl = `/import/result/${job.id}`;
-                  if (job.status === 'PROCESSING' || job.status === 'PENDING') {
-                    actionUrl = `/import/process/${job.id}`;
+                  let actionUrl = `/import/result?id=${job.id}`;
+                  if (job.status === 'PROCESSING') {
+                    actionUrl = `/import/process?id=${job.id}`;
+                  } else if (job.status === 'PENDING') {
+                    actionUrl = `/import/preview?id=${job.id}`;
                   }
 
                   return (
