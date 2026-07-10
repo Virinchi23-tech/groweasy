@@ -14,11 +14,17 @@ dotenv_1.default.config({ path: path_1.default.resolve(currentDir, '../../../.en
 dotenv_1.default.config({ path: path_1.default.resolve(currentDir, '../../apps/backend/.env') });
 const dbUrl = process.env.DATABASE_URL || 'file:./dev.db';
 const dbToken = process.env.DATABASE_AUTH_TOKEN;
+let resolvedUrl = dbUrl;
+if (dbUrl.startsWith('file:')) {
+    const relativePath = dbUrl.substring(5);
+    const dbDir = path_1.default.resolve(currentDir, '..'); // database/prisma
+    const absoluteDbPath = path_1.default.resolve(dbDir, relativePath);
+    resolvedUrl = `file:${absoluteDbPath}`;
+}
 async function run() {
-    console.log('Migrating database:', dbUrl);
-    const isLocal = dbUrl.startsWith('file:');
+    console.log('Migrating database:', resolvedUrl);
     const client = (0, client_1.createClient)({
-        url: dbUrl,
+        url: resolvedUrl,
         authToken: dbToken,
     });
     const sqlPath = path_1.default.resolve(currentDir, '../schema.sql');

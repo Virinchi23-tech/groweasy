@@ -12,13 +12,19 @@ dotenv.config({ path: path.resolve(currentDir, '../../apps/backend/.env') });
 const dbUrl = process.env.DATABASE_URL || 'file:./dev.db';
 const dbToken = process.env.DATABASE_AUTH_TOKEN;
 
-async function run() {
-  console.log('Migrating database:', dbUrl);
+let resolvedUrl = dbUrl;
+if (dbUrl.startsWith('file:')) {
+  const relativePath = dbUrl.substring(5);
+  const dbDir = path.resolve(currentDir, '..'); // database/prisma
+  const absoluteDbPath = path.resolve(dbDir, relativePath);
+  resolvedUrl = `file:${absoluteDbPath}`;
+}
 
-  const isLocal = dbUrl.startsWith('file:');
+async function run() {
+  console.log('Migrating database:', resolvedUrl);
 
   const client = createClient({
-    url: dbUrl,
+    url: resolvedUrl,
     authToken: dbToken,
   });
 
