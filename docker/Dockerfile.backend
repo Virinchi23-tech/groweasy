@@ -37,4 +37,4 @@ COPY --from=builder /app/apps/backend/package.json ./apps/backend/package.json
 
 EXPOSE 5000
 ENV NODE_ENV=production
-CMD ["sh", "-c", "npm run migrate -w database/prisma && npm run seed -w database/prisma && npm run start -w apps/backend"]
+CMD ["sh", "-c", "if [ -n \"$DATABASE_URL\" ] && echo \"$DATABASE_URL\" | grep -q \"^libsql://\"; then npm run migrate -w database/prisma; else DATABASE_URL=${DATABASE_URL:-file:./dev.db} npx prisma db push --schema=database/prisma/schema.prisma --accept-data-loss; fi; npm run seed -w database/prisma; npm run start -w apps/backend"]
