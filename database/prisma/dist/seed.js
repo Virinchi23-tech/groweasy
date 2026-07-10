@@ -3,29 +3,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
+const index_1 = require("./index");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 // On CommonJS builds, __dirname is globally available.
 const currentDir = typeof __dirname !== 'undefined' ? __dirname : '.';
 dotenv_1.default.config({ path: path_1.default.resolve(currentDir, '../../../.env') });
-const prisma = new client_1.PrismaClient({
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL || 'file:./dev.db',
-        },
-    },
-});
 async function main() {
     console.log('Seeding database...');
     // Create Roles
-    const adminRole = await prisma.role.upsert({
+    const adminRole = await index_1.prisma.role.upsert({
         where: { name: 'ADMIN' },
         update: {},
         create: { name: 'ADMIN' },
     });
-    const userRole = await prisma.role.upsert({
+    const userRole = await index_1.prisma.role.upsert({
         where: { name: 'USER' },
         update: {},
         create: { name: 'USER' },
@@ -34,7 +27,7 @@ async function main() {
     // Create Default Admin User
     const adminEmail = 'admin@groweasy.com';
     const adminPasswordHash = await bcryptjs_1.default.hash('admin123', 10);
-    const adminUser = await prisma.user.upsert({
+    const adminUser = await index_1.prisma.user.upsert({
         where: { email: adminEmail },
         update: {},
         create: {
@@ -48,7 +41,7 @@ async function main() {
     // Create Default Regular User
     const userEmail = 'user@groweasy.com';
     const userPasswordHash = await bcryptjs_1.default.hash('user123', 10);
-    const regularUser = await prisma.user.upsert({
+    const regularUser = await index_1.prisma.user.upsert({
         where: { email: userEmail },
         update: {},
         create: {
@@ -67,5 +60,5 @@ main()
     process.exit(1);
 })
     .finally(async () => {
-    await prisma.$disconnect();
+    await index_1.prisma.$disconnect();
 });

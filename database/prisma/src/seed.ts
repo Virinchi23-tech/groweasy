@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './index';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -6,14 +6,6 @@ import path from 'path';
 // On CommonJS builds, __dirname is globally available.
 const currentDir = typeof __dirname !== 'undefined' ? __dirname : '.';
 dotenv.config({ path: path.resolve(currentDir, '../../../.env') });
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL || 'file:./dev.db',
-    },
-  },
-});
 
 
 async function main() {
