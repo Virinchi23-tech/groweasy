@@ -21,12 +21,37 @@ const onRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
+// Decode base64url encoded JWT payload safely on client or server side
+const decodeToken = (token: string): any => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const raw = typeof window !== 'undefined'
+      ? window.atob(base64)
+      : Buffer.from(base64, 'base64').toString('binary');
+    const jsonPayload = decodeURIComponent(
+      raw
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
 export const apiFetch = async (endpoint: string, options: RequestOptions = {}): Promise<any> => {
   const url = `${API_BASE_URL}${endpoint}`;
   const headers = new Headers(options.headers || {});
 
   // Get current access token
   const { accessToken, refreshToken, setAuth, clearAuth } = useAuthStore.getState();
+
+  // Prevent SSR tokenless requests for authenticated paths
+  if (typeof window === 'undefined' && !options.skipAuth && !accessToken) {
+    throw new Error('Authentication required');
+  }
 
   if (accessToken && !options.skipAuth) {
     headers.set('Authorization', `Bearer ${accessToken}`);
@@ -56,10 +81,24 @@ export const apiFetch = async (endpoint: string, options: RequestOptions = {}): 
 
         if (refreshResponse.ok) {
           const data = await refreshResponse.json();
-          const user = useAuthStore.getState().user;
+          let user = useAuthStore.getState().user;
+          
+          if (!user) {
+            const decoded = decodeToken(data.accessToken);
+            if (decoded) {
+              user = {
+                id: decoded.userId,
+                email: decoded.email,
+                name: decoded.name,
+                role: decoded.role,
+              };
+            }
+          }
           
           if (user) {
             setAuth(data.accessToken, data.refreshToken, user);
+          } else {
+            useAuthStore.setState({ accessToken: data.accessToken, refreshToken: data.refreshToken });
           }
           
           isRefreshing = false;
