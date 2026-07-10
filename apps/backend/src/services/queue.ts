@@ -41,6 +41,7 @@ export const sseManager = new SSEManager();
 export class QueueWorker {
   private static isRunning = false;
   private static timer: NodeJS.Timeout | null = null;
+  private static hasLoggedMissingTable = false;
 
   static start() {
     if (this.timer) return;
@@ -74,8 +75,18 @@ export class QueueWorker {
       }
 
       await this.processQueueItem(queueItem);
+      this.hasLoggedMissingTable = false; // Reset if query succeeds
     } catch (err: any) {
-      errorLogger.error('Queue Worker execution error: ' + err.message, err);
+      const isTableMissing = err.message?.includes('does not exist') || err.message?.includes('no such table');
+      if (isTableMissing) {
+        if (!this.hasLoggedMissingTable) {
+          csvLogger.warn('QueueWorker: ProcessingQueue table does not exist yet. Please run database migrations. Polling will continue gracefully.');
+          this.hasLoggedMissingTable = true;
+        }
+      } else {
+        errorLogger.error('Queue Worker execution error: ' + err.message, err);
+        this.hasLoggedMissingTable = false;
+      }
     } finally {
       this.isRunning = false;
     }
